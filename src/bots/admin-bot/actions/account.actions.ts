@@ -1,7 +1,7 @@
 import TelegramApi from "node-telegram-bot-api";
 import { getUser, userCheckerService } from "../../services";
 import { ForceReplyOptions } from "../options/force-reply.options";
-import { isCommand, IsReplyMessage } from "../../services";
+import { isCommand, isReplyMessage } from "../../services";
 import User from "../../../models/user.model";
 import Account, { IAccount } from "../../../models/account.model";
 import { actionsMessage } from "../messages/actions";
@@ -25,7 +25,7 @@ const addNewAccountFunction = (bot: TelegramApi) => {
     if (
       msg.text &&
       !isCommand(msg.text) &&
-      IsReplyMessage(msg) &&
+      isReplyMessage(msg) &&
       msg.reply_to_message?.text === "Введите название счета" &&
       msg.from &&
       (await userCheckerService(msg.from.id))
@@ -61,7 +61,7 @@ export const lookAllAccountsById = (bot: TelegramApi) => {
           let text = "Список ваших счетов:\n";
           if (accountsById) {
             accountsById.forEach((account) => {
-              text += `<strong>${account.name}</strong> - баланс: ${account.balance}`;
+              text += `<strong>${account.name}</strong> - баланс: ${account.balance}\n`;
             });
           }
           await bot.sendMessage(chatId, text, HtmlOptions);
