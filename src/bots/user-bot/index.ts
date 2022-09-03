@@ -1,10 +1,10 @@
 import TelegramApi from "node-telegram-bot-api";
 import User, { IUser } from "../../models/user.model";
 import { actionsMessage } from "./messages/actions";
-import accountActions from "./actions/account.actions";
+import balanceActions from "./actions/balance.actions";
 
 export default function () {
-  const token = process.env.BOT_ADMIN_TOKEN;
+  const token = process.env.BOT_USER_TOKEN;
   if (token) {
     const bot = new TelegramApi(token, { polling: true });
     bot.onText(/\/start/, async (msg) => {
@@ -23,15 +23,15 @@ export default function () {
       if (user?.status === 1) {
         await bot.sendMessage(
           chatId,
-          "Добро пожаловать в админский expense bot! Ваш профиль был найден или создан"
+          "Добро пожаловать в expense bot! Ваш профиль был найден или создан"
         );
         return actionsMessage(bot, chatId);
       } else if (user?.status === 21) {
         return bot.sendMessage(chatId, "Извините, но у вас нет доступа к боту");
       }
     });
-    accountActions(bot);
+    balanceActions(bot);
   } else {
-    return new Error("Bot admin token not found");
+    return new Error("Bot user token not found");
   }
 }

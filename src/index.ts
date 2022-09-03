@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import startAdminBot from "./bots/admin-bot";
+import startUserBot from "./bots/user-bot";
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ const start = async () => {
     if (process.env.MONGO_URI) {
       await mongoose.connect(process.env.MONGO_URI);
       await startAdminBot();
+      await startUserBot();
       app.get("/", (req: Request, res: Response) => {
         res.send("Expense app Server");
       });
