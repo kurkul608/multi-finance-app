@@ -7,6 +7,7 @@ import {
 } from "../../services";
 import Account from "../../../models/account.model";
 import Action from "../../../models/action.model";
+import Log from "../../../models/log.model";
 import User from "../../../models/user.model";
 import { Types } from "mongoose";
 import { ForceReplyOptions } from "../options/force-reply.options";
@@ -198,6 +199,13 @@ const replyMessageListener = (bot: TelegramApi) => {
                 const account = await Account.findById(action.account);
                 if (account) {
                   await account.update({ balance: account.balance + +message });
+                  const log = new Log({
+                    user: account.user,
+                    type: action.type,
+                    account: account._id,
+                    count: +message,
+                  });
+                  await log.save();
                   return bot.sendMessage(
                     chatId,
                     "Данные по счету ообновлены",
@@ -215,6 +223,13 @@ const replyMessageListener = (bot: TelegramApi) => {
                 const account = await Account.findById(action.account);
                 if (account) {
                   await account.update({ balance: account.balance - +message });
+                  const log = new Log({
+                    user: account.user,
+                    type: action.type,
+                    account: account._id,
+                    count: +message,
+                  });
+                  await log.save();
                   return bot.sendMessage(
                     chatId,
                     "Данные по счету ообновлены",
