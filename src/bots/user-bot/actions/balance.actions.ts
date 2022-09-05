@@ -13,6 +13,9 @@ import { Types } from "mongoose";
 import { ForceReplyOptions } from "../options/force-reply.options";
 import { AccountOptions } from "../options/main.options";
 import { BalanceChangeEnum } from "../../enums/balance-change.enum";
+import CustomCategory from "../../../models/custom-category.model";
+import { CategoryTypeEnum } from "../../enums/category-type.enum";
+import { getCategoryOptions } from "../options/category.options";
 
 const generateKeyBoardArray = (
   type: BalanceChangeEnum,
@@ -122,7 +125,7 @@ const mainButtonsListener = (bot: TelegramApi) => {
   });
 };
 
-const addIncomeListener = (bot: TelegramApi) => {
+const addPaymentListener = (bot: TelegramApi) => {
   bot.on("callback_query", async (msg) => {
     const chatId = msg?.message?.chat.id;
     if (chatId) {
@@ -175,6 +178,47 @@ const addIncomeListener = (bot: TelegramApi) => {
         } else {
           return bot.sendMessage(chatId, "Something wrong...", AccountOptions);
         }
+      } else if (data && data.includes("cat_to_pay_msg_id_")) {
+        const [, messageIdAndCategoryId] = data.split("cat_to_pay_msg_id_");
+        const [messageId, categoryId] = messageIdAndCategoryId.split("_cat_");
+        const action = await Action.findOne({ message: messageId });
+        if (action) {
+          const account = await Account.findById(action.account);
+          if (account) {
+            await account.update({
+              balance:
+                action.type === BalanceChangeEnum.income
+                  ? account.balance + +action.count
+                  : account.balance - +action.count,
+            });
+            const customCategory = await CustomCategory.findById(categoryId);
+            if (customCategory) {
+              const log = new Log({
+                user: account.user,
+                type: action.type,
+                account: account._id,
+                custom_category: customCategory._id,
+                count: action.count,
+              });
+              await log.save();
+              return bot.sendMessage(
+                chatId,
+                "Данные по счету обновлены",
+                AccountOptions
+              );
+            } else {
+              return bot.sendMessage(
+                chatId,
+                "Something wrong...",
+                AccountOptions
+              );
+            }
+          } else {
+            return bot.sendMessage(chatId, "Счет не найден", AccountOptions);
+          }
+        } else {
+          return bot.sendMessage(chatId, "Something wrong...", AccountOptions);
+        }
       }
       return bot.sendMessage(chatId, "Success", AccountOptions);
     }
@@ -191,53 +235,56 @@ const replyMessageListener = (bot: TelegramApi) => {
         if (message && message.match(/^\d+$/)) {
           const action = await Action.findOne({ message: replyId });
           if (action) {
+            await action.update({ count: +message });
             switch (action.type) {
               case BalanceChangeEnum.income: {
-                const account = await Account.findById(action.account);
-                if (account) {
-                  await account.update({ balance: account.balance + +message });
-                  const log = new Log({
-                    user: account.user,
-                    type: action.type,
-                    account: account._id,
+                const user = await getUser(chatId);
+                const customCategories = await CustomCategory.find({
+                  user: user!._id,
+                  type: CategoryTypeEnum.income,
+                });
+                if (customCategories && customCategories.length) {
+                  const buttons = getCategoryOptions({
+                    messageID: replyId,
+                    categories: customCategories.map((category) => ({
+                      name: category.name,
+                      type: CategoryTypeEnum.income,
+                      id: category._id,
+                    })),
                     count: +message,
                   });
-                  await log.save();
                   return bot.sendMessage(
                     chatId,
-                    "Данные по счету обновлены",
-                    AccountOptions
+                    "Выберите категорию дохода",
+                    buttons
                   );
                 } else {
-                  return bot.sendMessage(
-                    chatId,
-                    "Счет не найден",
-                    AccountOptions
-                  );
+                  return bot.sendMessage(chatId, "Категории дохода не найдены");
                 }
               }
               case BalanceChangeEnum.consumption: {
-                const account = await Account.findById(action.account);
-                if (account) {
-                  await account.update({ balance: account.balance - +message });
-                  const log = new Log({
-                    user: account.user,
-                    type: action.type,
-                    account: account._id,
+                const user = await getUser(chatId);
+                const customCategories = await CustomCategory.find({
+                  user: user!._id,
+                  type: CategoryTypeEnum.consumption,
+                });
+                if (customCategories && customCategories.length) {
+                  const buttons = getCategoryOptions({
+                    messageID: replyId,
                     count: +message,
+                    categories: customCategories.map((category) => ({
+                      name: category.name,
+                      type: CategoryTypeEnum.consumption,
+                      id: category._id,
+                    })),
                   });
-                  await log.save();
                   return bot.sendMessage(
                     chatId,
-                    "Данные по счету обновлены",
-                    AccountOptions
+                    "Выберите категорию трат",
+                    buttons
                   );
                 } else {
-                  return bot.sendMessage(
-                    chatId,
-                    "Счет не найден",
-                    AccountOptions
-                  );
+                  return bot.sendMessage(chatId, "Категории трат не найдены");
                 }
               }
             }
@@ -251,6 +298,6 @@ const replyMessageListener = (bot: TelegramApi) => {
 };
 export default (bot: TelegramApi) => {
   mainButtonsListener(bot);
-  addIncomeListener(bot);
+  addPaymentListener(bot);
   replyMessageListener(bot);
 };

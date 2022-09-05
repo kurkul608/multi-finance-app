@@ -5,6 +5,7 @@ export interface IAction {
   account: Types.ObjectId;
   type: string;
   message: number;
+  count: number;
   text: string;
 }
 export interface IAccountSchema extends IAction {
@@ -26,6 +27,9 @@ const Action = new Schema<IAccountSchema>({
   },
   text: {
     type: String,
+  },
+  count: {
+    type: Number,
   },
   message: Number,
   created: {

@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 export interface ILog {
   user: Types.ObjectId;
   account: Types.ObjectId;
+  custom_category: Types.ObjectId;
   type: string;
   count: number;
 }
@@ -22,6 +23,11 @@ const Log = new Schema<IAccountSchema>({
   type: {
     type: String,
     required: true,
+  },
+  custom_category: {
+    type: Schema.Types.ObjectId,
+    ref: "CustomCategory",
+    required: false,
   },
   count: Number,
   created: {
