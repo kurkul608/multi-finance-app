@@ -2,6 +2,7 @@ import TelegramApi from "node-telegram-bot-api";
 import User, { IUser } from "../../models/user.model";
 import { actionsMessage } from "./messages/actions";
 import accountActions from "./actions/account.actions";
+import categoryActions from "./actions/category.actions";
 
 export default function () {
   const token = process.env.BOT_ADMIN_TOKEN;
@@ -31,6 +32,7 @@ export default function () {
       }
     });
     accountActions(bot);
+    categoryActions(bot);
   } else {
     return new Error("Bot admin token not found");
   }

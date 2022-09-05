@@ -1,37 +1,31 @@
 import mongoose, { Types } from "mongoose";
 const Schema = mongoose.Schema;
-export interface IAction {
+export interface ICategory {
   user: Types.ObjectId;
-  account: Types.ObjectId;
+  name: string;
   type: string;
-  message: number;
-  text: string;
 }
-export interface IAccountSchema extends IAction {
+export interface ICustomCategorySchema extends ICategory {
   created: Date;
 }
-const Action = new Schema<IAccountSchema>({
+const CustomCategory = new Schema<ICustomCategorySchema>({
   user: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  account: {
-    type: Schema.Types.ObjectId,
-    ref: "Account",
+  name: {
+    type: String,
+    required: true,
   },
   type: {
     type: String,
     required: true,
   },
-  text: {
-    type: String,
-  },
-  message: Number,
   created: {
     type: Date,
     default: Date.now,
   },
 });
 
-export default mongoose.model("Action", Action);
+export default mongoose.model("CustomCategory", CustomCategory);

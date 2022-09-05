@@ -12,11 +12,8 @@ import User from "../../../models/user.model";
 import { Types } from "mongoose";
 import { ForceReplyOptions } from "../options/force-reply.options";
 import { AccountOptions } from "../options/main.options";
+import { BalanceChangeEnum } from "../../enums/balance-change.enum";
 
-enum BalanceChangeEnum {
-  consumption = "ADD_NEw_CONSUMPTION",
-  income = "ADD_NEW_INCOME",
-}
 const generateKeyBoardArray = (
   type: BalanceChangeEnum,
   accounts: { name: string; _id: Types.ObjectId }[]
@@ -208,7 +205,7 @@ const replyMessageListener = (bot: TelegramApi) => {
                   await log.save();
                   return bot.sendMessage(
                     chatId,
-                    "Данные по счету ообновлены",
+                    "Данные по счету обновлены",
                     AccountOptions
                   );
                 } else {
@@ -232,7 +229,7 @@ const replyMessageListener = (bot: TelegramApi) => {
                   await log.save();
                   return bot.sendMessage(
                     chatId,
-                    "Данные по счету ообновлены",
+                    "Данные по счету обновлены",
                     AccountOptions
                   );
                 } else {

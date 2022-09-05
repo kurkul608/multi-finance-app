@@ -47,6 +47,7 @@ const addNewAccountFunction = (bot: TelegramApi) => {
     }
   });
 };
+
 export const lookAllAccountsById = (bot: TelegramApi) => {
   bot.on("callback_query", async (msg) => {
     const chatId = msg?.message?.chat.id;
